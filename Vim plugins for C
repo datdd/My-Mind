@@ -1,0 +1,4 @@
+1. Auto complete
+https://github.com/Valloric/YouCompleteMe
+  -- Require
+  Install clang: http://apt.llvm.org/
