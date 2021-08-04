@@ -13,10 +13,15 @@ function get-diralias ([string]$loc) {
 
 # Set prompt
 function prompt {
-	$Host.UI.RawUI.WindowTitle = (Get-Date -UFormat '%y/%m/%d %R').Tostring()
+	$Host.UI.RawUI.WindowTitle = "$env:UserName@: $(get-diralias($(get-location)))"
+	
+	Write-Host '[' -NoNewline
+	Write-Host "$env:UserName@$env:ComputerName : $(get-diralias($(get-location)))" -ForegroundColor Blue -NoNewline
+	Write-Host ']' -NoNewline
+	
 	Write-Host '[' -NoNewline
 	Write-Host (Get-Date -format 'hh:mm:ss tt') -ForegroundColor Green -NoNewline
 	Write-Host ']' -NoNewline
-    
-	return "[$env:UserName@$env:ComputerName $(get-diralias($(get-location)))]$ "
+
+	return "$ "
 }
