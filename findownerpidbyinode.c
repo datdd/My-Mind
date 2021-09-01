@@ -23,7 +23,8 @@ static void find_owner_pid_by_inode_number(int inonum)
     if (!dir)
         return;
 
-    while ((d = readdir(dir)) != NULL) {
+    while ((d = readdir(dir)) != NULL)
+    {
         struct dirent *d1;
         char process[16];
         char *p;
@@ -34,8 +35,6 @@ static void find_owner_pid_by_inode_number(int inonum)
         if (sscanf(d->d_name, "%d%c", &pid, &crap) != 1)
             continue;
 
-        printf("name=%s, pid=%d\n", d->d_name, pid);
-
         snprintf(name + nameoff, sizeof(name) - nameoff, "%d/fd/", pid);
         pos = strlen(name);
         if ((dir1 = opendir(name)) == NULL) {
@@ -45,13 +44,15 @@ static void find_owner_pid_by_inode_number(int inonum)
         process[0] = '\0';
         p = process;
 
-        while ((d1 = readdir(dir1)) != NULL) {
+        while ((d1 = readdir(dir1)) != NULL)
+        {
             const char *pattern = "socket:[";
             unsigned int ino;
             char lnk[64];
+            char buf[1024];
             int fd;
+            FILE *fp = NULL;
             ssize_t link_len;
-            char tmp[1024];
 
             if (sscanf(d1->d_name, "%d%c", &fd, &crap) != 1)
                 continue;
@@ -70,7 +71,21 @@ static void find_owner_pid_by_inode_number(int inonum)
 
             if (ino == inonum)
             {
-                printf("Found pid=%d\n", pid);
+                snprintf(name + nameoff, sizeof(name) - nameoff, "%d/cmdline", pid);
+                if ((fp = fopen(name, "r")) != NULL)
+                {
+                    memset(buf, 0, sizeof buf);
+                    if (fgets(buf, sizeof buf, fp) != NULL)
+                    {
+                        printf("Found pid=%d, cmdline=%s\n", pid, buf);
+                    }
+                    fclose(fp);
+                }
+                else
+                {
+                    printf("Found pid=%d\n", pid);
+                }
+                
                 break;
             }
         }
@@ -83,7 +98,8 @@ int main(int argc, char *argv[])
 {
     if (argc != 2)
     {
-        fprintf(stderr, "Unexpected argument!\n");
+        fprintf(stderr, "%s: Invalid argument!\n", argv[0]);
+        fprintf(stderr, "Usage: %s [inode]\n", argv[0]);
         return 0;
     }
 
