@@ -1,5 +1,10 @@
 pipeline {
-  agent any
+  agent {
+    node {
+      label 'Node2'
+    }
+
+  }
   stages {
     stage('stage1') {
       parallel {
@@ -30,5 +35,8 @@ pipeline {
       }
     }
 
+  }
+  environment {
+    java = '11'
   }
 }
