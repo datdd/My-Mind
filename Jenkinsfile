@@ -1,51 +1,53 @@
 pipeline {
-  agent {
-    node {
-      label 'Node2'
-    }
-
-  }
+  agent any
   stages {
-    stage('stage1') {
+    stage('Build') {
+      steps {
+        echo 'Build demo-app'
+        sh 'sh run_build_script.sh'
+      }
+    }
+
+    stage('Linux Tests') {
       parallel {
-        stage('stage1') {
+        stage('Linux Tests') {
           steps {
-            sh 'echo "Step 1"'
-            node(label: 'Not1.1') {
-              echo 'Add node'
-              sleep 3
-            }
-
+            echo 'Run Linux tests'
+            sh 'sh run_linux_tests.sh'
           }
         }
 
-        stage('stage 1.1') {
+        stage('Windows Tests') {
           steps {
-            echo 'Step 1.1'
-            waitUntil(initialRecurrencePeriod: 5, quiet: true) {
-              echo 'qqq'
-            }
-
+            echo 'Run Windows tests'
           }
         }
 
       }
     }
 
-    stage('stage2') {
+    stage('Deploy Staging') {
       steps {
-        sleep 5
+        echo 'Deploy to staging environment'
+        input 'Ok to deploy to production?'
       }
     }
 
-    stage('stage3') {
+    stage('Deploy Production') {
+      post {
+        always {
+          archiveArtifacts(artifacts: 'target/demoapp.jar', fingerprint: true)
+        }
+
+        failure {
+          emailext(subject: 'Demoapp build failure', to: 'ci-team@example.com', body: 'Build failure for demoapp Build ${env.JOB_NAME} ')
+        }
+
+      }
       steps {
-        echo 'Hello World'
+        echo 'Deploy to Prod'
       }
     }
 
-  }
-  environment {
-    java = '11'
   }
 }
